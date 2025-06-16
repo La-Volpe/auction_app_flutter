@@ -12,17 +12,14 @@ class AuthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AuthBloc>(
-      create: (_) => AuthBloc(
-        secureStorage: const FlutterSecureStorage(),
-        mockAuthService: MockAuthService(),
-      )..add(AuthStatusChecked()), // Dispatch event to check auth status on init
-      child: const _AuthScreenView(), // Child is now the new StatefulWidget
+      create: (_) => BlocProvider.of<AuthBloc>(context), // Use existing AuthBloc
+      child: const _AuthScreenView(),
     );
   }
 }
 
 class _AuthScreenView extends StatefulWidget {
-  const _AuthScreenView(); 
+  const _AuthScreenView();
 
   @override
   State<_AuthScreenView> createState() => _AuthScreenViewState();
@@ -33,7 +30,8 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _isLoading = false;
+  // No longer need _isLoading, will rely on AuthBloc state
+  // bool _isLoading = false;
 
   @override
   void dispose() {
@@ -75,11 +73,9 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     if (_formKey.currentState!.validate()) {
-      if (mounted) {
-        setState(() {
-          _isLoading = true;
-        });
-      }
+      // setState(() { // No longer needed
+      //   _isLoading = true;
+      // });
       context.read<AuthBloc>().add(AuthLoginRequested(
             email: _emailController.text,
             password: _passwordController.text,
@@ -95,13 +91,14 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state.status == AuthStatus.authenticated || (state.status == AuthStatus.unauthenticated && state.errorMessage != null)) {
-            if (mounted) {
-              setState(() {
-                _isLoading = false;
-              });
-            }
-          }
+          // Removed _isLoading state management here, relying on AuthStatus.unknown for loading indication
+          // if (state.status == AuthStatus.authenticated || (state.status == AuthStatus.unauthenticated && state.errorMessage != null)) {
+          //   if (mounted) {
+          //     setState(() {
+          //       _isLoading = false;
+          //     });
+          //   }
+          // }
 
           if (state.status == AuthStatus.unauthenticated && state.errorMessage != null) {
             ScaffoldMessenger.of(context)
@@ -113,6 +110,8 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
                 ),
               );
           } else if (state.status == AuthStatus.authenticated) {
+            // Check if mounted before showing SnackBar and navigating
+            if (!mounted) return;
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(
@@ -122,11 +121,20 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
                 ),
               );
             print('Login successful (from BLoC state): ${state.email}');
-            // Navigate to search screen
-            Navigator.pushReplacementNamed(context, '/search');
+            // Navigate to the new main screen
+            Navigator.pushReplacementNamed(context, '/main');
           }
         },
+        // buildWhen: (previous, current) => previous.status != current.status, // Optional: to prevent rebuilds if only error message changes
         builder: (context, state) {
+          // Handle initial loading state when AuthStatus is unknown (during AuthStatusChecked)
+          if (state.status == AuthStatus.unknown && state.token == null) { // Check token to differentiate initial check from login attempt
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          // Determine if login is in progress based on AuthState
+          final bool isLoading = state.status == AuthStatus.unknown && state.token == null && state.errorMessage == null;
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Form(
@@ -145,7 +153,7 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
                     keyboardType: TextInputType.emailAddress,
                     validator: _validateEmail,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                    enabled: !_isLoading,
+                    enabled: !isLoading,
                   ),
                   const SizedBox(height: 16.0),
                   TextFormField(
@@ -158,16 +166,17 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
                         icon: Icon(
                           _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                         ),
-                        onPressed: _isLoading ? null : _togglePasswordVisibility,
+                        onPressed: isLoading ? null : _togglePasswordVisibility,
                       ),
                     ),
                     obscureText: !_isPasswordVisible,
                     validator: _validatePassword,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                    enabled: !_isLoading,
+                    enabled: !isLoading,
                   ),
                   const SizedBox(height: 24.0),
-                  if (state.status == AuthStatus.unauthenticated && state.errorMessage != null && !_isLoading)
+                  // Display error message if login failed (and not currently loading)
+                  if (state.status == AuthStatus.unauthenticated && state.errorMessage != null && !isLoading)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10.0),
                       child: Text(
@@ -177,11 +186,11 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
                       ),
                     ),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
+                    onPressed: isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                     ),
-                    child: _isLoading
+                    child: isLoading
                         ? const SizedBox(
                             height: 20,
                             width: 20,

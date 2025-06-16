@@ -8,13 +8,9 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ProfileBloc depends on AuthBloc. AuthBloc should be accessible in the context.
-    // This is typically achieved by providing AuthBloc higher up in the widget tree (e.g., in MyApp).
     final authBloc = BlocProvider.of<AuthBloc>(context);
 
     return BlocProvider<ProfileBloc>(
-      // ProfileBloc is created here and receives the AuthBloc instance.
-      // It automatically dispatches ProfileDataLoadRequested upon creation (see ProfileBloc constructor).
       create: (context) => ProfileBloc(authBloc: authBloc),
       child: const _ProfileScreenView(),
     );
@@ -29,28 +25,26 @@ class _ProfileScreenView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Profile'),
-        // Assuming this screen is pushed onto a navigator stack (e.g., from SearchScreen)
-        // A leading back button will be automatically added by Flutter if Navigator.canPop(context) is true.
       ),
       body: BlocConsumer<ProfileBloc, ProfileState>(
         listener: (context, state) {
           if (state.status == ProfileStatus.logoutSuccess) {
+            // Navigation is now handled by MainScreen's AuthBloc listener.
+            // We can still show a SnackBar here if desired, but it might be brief.
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(
                 const SnackBar(
-                  content: Text('Logout successful! Returning to login...'),
+                  content: Text('Logout successful!'), // Simplified message
                   backgroundColor: Colors.green,
-                  duration: Duration(seconds: 2), // Show for a bit before navigating
+                  duration: Duration(seconds: 2),
                 ),
               );
-            // Navigate back to login screen, clearing the navigation stack.
-            // Adding a slight delay to allow SnackBar to be seen.
-            Future.delayed(const Duration(seconds: 1), () {
-                if (context.mounted) { // Check if widget is still in the tree
-                    Navigator.of(context).pushNamedAndRemoveUntil('/auth', (Route<dynamic> route) => false);
-                }
-            });
+            // Future.delayed(const Duration(seconds: 1), () { // Removed navigation
+            //     if (context.mounted) {
+            //         Navigator.of(context).pushNamedAndRemoveUntil('/auth', (Route<dynamic> route) => false);
+            //     }
+            // });
           } else if (state.status == ProfileStatus.logoutFailure && state.errorMessage != null) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
@@ -79,7 +73,7 @@ class _ProfileScreenView extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start, // Align content to the top
+              mainAxisAlignment: MainAxisAlignment.start, 
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 const SizedBox(height: 20),
@@ -117,7 +111,7 @@ class _ProfileScreenView extends StatelessWidget {
                     ),
                   ),
                 
-                const Spacer(), // Pushes logout button to the bottom
+                const Spacer(), 
 
                 if (state.status == ProfileStatus.logoutInProgress)
                   const Center(child: Padding(
@@ -126,7 +120,7 @@ class _ProfileScreenView extends StatelessWidget {
                   ))
                 else
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 20.0), // Add some padding at the bottom
+                    padding: const EdgeInsets.only(bottom: 20.0), 
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.exit_to_app),
                       label: const Text('Logout'),
@@ -143,7 +137,7 @@ class _ProfileScreenView extends StatelessWidget {
                     ),
                   ),
                 if (state.status == ProfileStatus.logoutFailure && state.errorMessage != null && state.status != ProfileStatus.logoutInProgress)
-                  Padding( // Only show if not already showing loading indicator
+                  Padding( 
                     padding: const EdgeInsets.only(bottom: 20.0),
                     child: Text(
                       'Logout Error: ${state.errorMessage}',
