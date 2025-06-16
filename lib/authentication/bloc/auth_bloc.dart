@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:car_auction_app/mock/auth_snippet.dart'; // Assuming this is the correct path
+import 'package:car_auction_app/authentication/data/auth_service.dart'; // Assuming this is the correct path
 import 'auth_event.dart';
 import 'auth_state.dart';
 
