@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'authentication/view/auth_screen.dart';
+import 'search/view/search_screen.dart'; // Added import for SearchScreen
 
 void main() {
   runApp(const MyApp());
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const AuthScreen(),
         '/auth': (context) => const AuthScreen(),
+        '/search': (context) => const SearchScreen(), // Added search route
       },
     );
   }

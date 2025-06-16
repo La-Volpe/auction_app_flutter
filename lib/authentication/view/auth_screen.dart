@@ -15,7 +15,7 @@ class AuthScreen extends StatelessWidget {
       create: (_) => AuthBloc(
         secureStorage: const FlutterSecureStorage(),
         mockAuthService: MockAuthService(),
-      ), // TODO: ..add(AuthStatusChecked()) for initial status check
+      )..add(AuthStatusChecked()), // Dispatch event to check auth status on init
       child: const _AuthScreenView(), // Child is now the new StatefulWidget
     );
   }
@@ -122,7 +122,8 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
                 ),
               );
             print('Login successful (from BLoC state): ${state.email}');
-            // TODO: Navigate to vin_entry screen
+            // Navigate to search screen
+            Navigator.pushReplacementNamed(context, '/search');
           }
         },
         builder: (context, state) {
