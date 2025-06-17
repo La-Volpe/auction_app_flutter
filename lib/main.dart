@@ -47,7 +47,20 @@ class MyApp extends StatelessWidget {
           '/auth': (context) => const AuthScreen(),
           '/search': (context) => const SearchScreen(),
           '/main': (context) => const MainScreen(),
-          '/auction': (context) => const AuctionScreen(uuid: '', model: '', initialPrice: 0), // Placeholder for AuctionScreen
+        },
+        onGenerateRoute: (settings) {
+          if (settings.name == '/auction') {
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (_) => AuctionScreen(
+                uuid: args['uuid'] ?? '',
+                model: args['model'] ?? '',
+                initialPrice: num.tryParse(args['price'] ?? '0'),
+              ),
+            );
+          }
+          // fallback
+          return MaterialPageRoute(builder: (_) => const AuthScreen());
         },
       ),
     );

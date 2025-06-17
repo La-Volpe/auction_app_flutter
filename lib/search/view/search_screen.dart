@@ -65,9 +65,19 @@ class _SearchScreenState extends State<SearchScreen> {
                 onFieldSubmitted: (_) => _submitVin(),
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _submitVin,
-                child: const Text('Search VIN'),
+              BlocBuilder<SearchBloc, SearchState>(
+                builder: (context, state) {
+                  return ElevatedButton(
+                    onPressed: state is SearchLoading ? null : _submitVin,
+                    child: state is SearchLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Search VIN'),
+                  );
+                },
               ),
               const SizedBox(height: 24),
               Expanded(
@@ -125,7 +135,7 @@ class _SearchScreenState extends State<SearchScreen> {
               Text('Model: ${data.model}'),
               Text('External ID: ${data.externalId}'),
               if (data.price != null) Text('Price: ${data.price}'),
-              if (data.feedback != null) Text('Feedback: \"${data.feedback}\"'),
+              if (data.feedback != null) Text('Feedback: "${data.feedback}"'),
               if (data.origin != null) Text('Origin: ${data.origin}'),
               if (data.valuatedAt != null) Text('Valuated At: ${data.valuatedAt}'),
               const SizedBox(height: 16),
@@ -139,9 +149,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       context,
                       '/auction',
                       arguments: {
-                        'uuid': data.fkUuidAuction ?? '',
+                        'uuid': data.externalId,
                         'model': data.model,
-                        'price': data.price?.toString(),
+                        'price': data.price.toString(),
                       },
                     );
                   },
