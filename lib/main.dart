@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
         mockAuthService: MockAuthService(),
       )..add(AuthStatusChecked()), // Check auth status when the app starts
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Car Auction App',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
