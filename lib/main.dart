@@ -7,6 +7,7 @@ import 'package:car_auction_app/search/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'auction/view/auction_screen.dart';
 import 'authentication/view/auth_screen.dart';
 import 'search/view/search_screen.dart'; // Added import for SearchScreen
 
@@ -46,6 +47,7 @@ class MyApp extends StatelessWidget {
           '/auth': (context) => const AuthScreen(),
           '/search': (context) => const SearchScreen(),
           '/main': (context) => const MainScreen(),
+          '/auction': (context) => const AuctionScreen(uuid: '', model: '', initialPrice: 0), // Placeholder for AuctionScreen
         },
       ),
     );

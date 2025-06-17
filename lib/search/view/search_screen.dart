@@ -108,6 +108,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return SingleChildScrollView(
       child: Card(
         elevation: 2,
+        margin: const EdgeInsets.only(bottom: 16),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -123,10 +124,28 @@ class _SearchScreenState extends State<SearchScreen> {
               Text('Model: ${data.model}'),
               Text('External ID: ${data.externalId}'),
               if (data.price != null) Text('Price: ${data.price}'),
-              if (data.feedback != null) Text('Feedback: "${data.feedback}"'),
+              if (data.feedback != null) Text('Feedback: \"${data.feedback}\"'),
               if (data.origin != null) Text('Origin: ${data.origin}'),
-              if (data.valuatedAt != null)
-                Text('Valuated At: ${data.valuatedAt}'),
+              if (data.valuatedAt != null) Text('Valuated At: ${data.valuatedAt}'),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.gavel),
+                  label: const Text('View Auction'),
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/auction',
+                      arguments: {
+                        'uuid': data.fkUuidAuction ?? '',
+                        'model': data.model,
+                        'price': data.price?.toString(),
+                      },
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
