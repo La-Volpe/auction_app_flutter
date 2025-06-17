@@ -11,10 +11,7 @@ class AuthScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthBloc>(
-      create: (_) => BlocProvider.of<AuthBloc>(context), // Use existing AuthBloc
-      child: const _AuthScreenView(),
-    );
+    return const _AuthScreenView();
   }
 }
 
@@ -91,15 +88,6 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          // Removed _isLoading state management here, relying on AuthStatus.unknown for loading indication
-          // if (state.status == AuthStatus.authenticated || (state.status == AuthStatus.unauthenticated && state.errorMessage != null)) {
-          //   if (mounted) {
-          //     setState(() {
-          //       _isLoading = false;
-          //     });
-          //   }
-          // }
-
           if (state.status == AuthStatus.unauthenticated && state.errorMessage != null) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
@@ -110,7 +98,6 @@ class _AuthScreenViewState extends State<_AuthScreenView> {
                 ),
               );
           } else if (state.status == AuthStatus.authenticated) {
-            // Check if mounted before showing SnackBar and navigating
             if (!mounted) return;
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()

@@ -8,12 +8,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authBloc = BlocProvider.of<AuthBloc>(context);
-
-    return BlocProvider<ProfileBloc>(
-      create: (context) => ProfileBloc(authBloc: authBloc),
-      child: const _ProfileScreenView(),
-    );
+    return const _ProfileScreenView();
   }
 }
 
@@ -29,22 +24,15 @@ class _ProfileScreenView extends StatelessWidget {
       body: BlocConsumer<ProfileBloc, ProfileState>(
         listener: (context, state) {
           if (state.status == ProfileStatus.logoutSuccess) {
-            // Navigation is now handled by MainScreen's AuthBloc listener.
-            // We can still show a SnackBar here if desired, but it might be brief.
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(
                 const SnackBar(
-                  content: Text('Logout successful!'), // Simplified message
+                  content: Text('Logout successful!'),
                   backgroundColor: Colors.green,
                   duration: Duration(seconds: 2),
                 ),
               );
-            // Future.delayed(const Duration(seconds: 1), () { // Removed navigation
-            //     if (context.mounted) {
-            //         Navigator.of(context).pushNamedAndRemoveUntil('/auth', (Route<dynamic> route) => false);
-            //     }
-            // });
           } else if (state.status == ProfileStatus.logoutFailure && state.errorMessage != null) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
