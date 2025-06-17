@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:car_auction_app/authentication/bloc/auth_bloc.dart';
 import 'package:car_auction_app/authentication/bloc/auth_event.dart';
 import 'package:car_auction_app/authentication/bloc/auth_state.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:car_auction_app/authentication/data/auth_service.dart';
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});

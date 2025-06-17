@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:car_auction_app/authentication/bloc/auth_bloc.dart'; // Needed to provide AuthBloc to ProfileBloc
 import 'package:car_auction_app/profile/bloc/profile_bloc.dart';
 
 class ProfileScreen extends StatelessWidget {
