@@ -23,6 +23,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _submitVin() {
     if (_formKey.currentState!.validate()) {
+      FocusScope.of(context).unfocus();
       context.read<SearchBloc>().add(VinSubmitted(_vinController.text));
     }
   }
