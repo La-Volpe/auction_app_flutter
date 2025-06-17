@@ -2,6 +2,8 @@ import 'package:car_auction_app/authentication/bloc/auth_bloc.dart';
 import 'package:car_auction_app/authentication/bloc/auth_event.dart'; // Import AuthEvent
 import 'package:car_auction_app/authentication/data/auth_service.dart';
 import 'package:car_auction_app/navigation/view/main_screen.dart';
+import 'package:car_auction_app/profile/bloc/profile_bloc.dart';
+import 'package:car_auction_app/search/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -17,23 +19,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthBloc>(
-      create: (context) => AuthBloc(
-        secureStorage: const FlutterSecureStorage(),
-        mockAuthService: MockAuthService(),
-      )..add(AuthStatusChecked()), // Check auth status when the app starts
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(
+          create: (context) => AuthBloc(
+            secureStorage: const FlutterSecureStorage(),
+            mockAuthService: MockAuthService(),
+          )..add(AuthStatusChecked()),
+        ),
+        BlocProvider<SearchBloc>(
+          create: (context) => SearchBloc(),
+        ),
+        BlocProvider<ProfileBloc>(
+          create: (context) => ProfileBloc(authBloc: BlocProvider.of<AuthBloc>(context)),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Car Auction App',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),
-        initialRoute: '/', // AuthScreen will handle redirection based on auth state
+        initialRoute: '/',
         routes: {
-          '/': (context) => const AuthScreen(), // Default route
+          '/': (context) => const AuthScreen(),
           '/auth': (context) => const AuthScreen(),
-          '/search': (context) => const SearchScreen(), // Kept for direct access if needed, though /main is primary
-          '/main': (context) => const MainScreen(), // New main screen with bottom nav
+          '/search': (context) => const SearchScreen(),
+          '/main': (context) => const MainScreen(),
         },
       ),
     );

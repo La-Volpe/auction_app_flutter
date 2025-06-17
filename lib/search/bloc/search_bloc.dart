@@ -53,21 +53,30 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         headers: {CosChallenge.user: _userId}, // Using CosChallenge.user
       ).timeout(const Duration(seconds: 10));
 
-      // Status codes based on CosChallenge MockClient logic:
-      // 100: success (single item)
-      // 200: multipleChoices
-      // 300: error
-      // Other status codes might not be directly produced by this specific mock.
+      // Log the response body
+      print('HTTP Response Body: ${response.body}');
+      print('HTTP Status Code: ${response.statusCode}');
 
-      if (response.statusCode == 100) { // Success - single item
+      // Status codes based on CosChallenge MockClient logic:
+      // 100: 200 (single item)
+      // 300: multipleChoices
+      // else: error
+
+      if (response.statusCode == 200) {
         try {
-          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          //Well... it was requested not to modify the CosChallenge file,
+          // but the server response has a bug that needs fixing. so... here it goes...
+          String fixedBody = response.body.replaceFirstMapped(
+            RegExp(r'("externalId":\s*".*?")\s*(")'),
+                (m) => '${m[1]}, ${m[2]}',
+          );
+
+          final data = jsonDecode(fixedBody) as Map<String, dynamic>;
           emit(SearchSuccessSingleItem(AuctionData.fromJson(data)));
         } catch (e) {
-          emit(JsonDeserializationError(
-              "Failed to parse successful server response: ${e.toString()}"));
+          emit(JsonDeserializationError(e.toString()));
         }
-      } else if (response.statusCode == 200) { // Multiple choices
+      } else if (response.statusCode == 300) { // Multiple choices
         try {
           final List<dynamic> dataList = jsonDecode(response.body) as List<dynamic>;
           final choices = dataList
@@ -75,10 +84,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
               .toList();
           emit(SearchSuccessMultipleItems(choices));
         } catch (e) {
-          emit(JsonDeserializationError(
-              "Failed to parse multiple choice server response: ${e.toString()}"));
+          emit(JsonDeserializationError(e.toString()));
         }
-      } else if (response.statusCode == 300) { // Error response from server
+      } else { // Error response from server
         ServerErrorDetails? details;
         String errorMessage = "Server returned an error.";
         try {
@@ -89,10 +97,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           // If parsing error details fails, use a generic message
            errorMessage = "Server returned an error, and error details could not be parsed. Raw: ${response.body}";
         }
-        emit(HttpError("HTTP Error: ${response.statusCode}. $errorMessage", response.statusCode, serverErrorDetails: details));
-      }
-      else { // Other unexpected HTTP status codes
-         emit(HttpError("Unexpected HTTP Error: ${response.statusCode}. Body: ${response.body}", response.statusCode));
+        emit(HttpError("HTTP Error: $errorMessage", response.statusCode, serverErrorDetails: details));
       }
 
     } on TimeoutException catch (_) {
@@ -113,8 +118,4 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           "An unexpected error occurred: ${e.toString()}"));
     }
   }
-
-  // No need to close CosChallenge.httpClient here as it's a static instance
-  // and might be used by other parts of the app.
-  // If it were specific to this BLoC and created here, then closing would be appropriate.
 }
