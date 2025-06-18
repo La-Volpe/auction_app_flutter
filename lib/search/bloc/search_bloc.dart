@@ -31,12 +31,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     // VIN Validation using CosChallenge.vinLength
     if (vin.length != CosChallenge.vinLength) {
-      emit(VinValidationFailure("VIN must be ${CosChallenge.vinLength} characters long."));
+      emit(VinValidationFailure("Invalid VIN length"));
       return;
     }
     if (!RegExp(r'^[A-HJ-NPR-Z0-9]{17}$').hasMatch(vin)) {
       emit(const VinValidationFailure(
-          "VIN contains invalid characters. Only alphanumeric characters (excluding I, O, Q) are allowed."));
+          "Invalid VIN format"));
       return;
     }
 
@@ -52,10 +52,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         uri,
         headers: {CosChallenge.user: _userId}, // Using CosChallenge.user
       ).timeout(const Duration(seconds: 10));
-
-      // Log the response body
-      print('HTTP Response Body: ${response.body}');
-      print('HTTP Status Code: ${response.statusCode}');
 
       // Status codes based on CosChallenge MockClient logic:
       // 100: 200 (single item)
@@ -74,7 +70,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           final data = jsonDecode(fixedBody) as Map<String, dynamic>;
           emit(SearchSuccessSingleItem(AuctionData.fromJson(data)));
         } catch (e) {
-          emit(JsonDeserializationError(e.toString()));
+          // Log the actual error for debugging
+          print('JSON Deserialization Error: ${e.toString()}');
+          emit(const JsonDeserializationError(
+              "Unable to process vehicle data"));
         }
       } else if (response.statusCode == 300) { // Multiple choices
         try {
@@ -84,38 +83,54 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
               .toList();
           emit(SearchSuccessMultipleItems(choices));
         } catch (e) {
-          emit(JsonDeserializationError(e.toString()));
+          // Log the actual error for debugging
+          print('Multiple Choices JSON Error: ${e.toString()}');
+          emit(const JsonDeserializationError(
+              "Unable to process vehicle options"));
         }
       } else { // Error response from server
         ServerErrorDetails? details;
-        String errorMessage = "Server returned an error.";
+        String userFriendlyMessage = "Unable to retrieve vehicle information";
+
         try {
           final errorData = jsonDecode(response.body) as Map<String, dynamic>;
           details = ServerErrorDetails.fromJson(errorData);
-          errorMessage = details.message; // Use message from parsed error
+
+          // Store original message for logging
+          String originalMessage = details.message;
+          print('Server Error: $originalMessage');
+
+          // Only pass user-friendly message to UI
         } catch (e) {
-          // If parsing error details fails, use a generic message
-           errorMessage = "Server returned an error, and error details could not be parsed. Raw: ${response.body}";
+          // Log the parsing error
+          print('Error parsing server error: ${e.toString()}');
+          print('Raw response: ${response.body}');
         }
-        emit(HttpError("HTTP Error: $errorMessage", response.statusCode, serverErrorDetails: details));
+
+        emit(HttpError(userFriendlyMessage, response.statusCode,
+            serverErrorDetails: details));
       }
 
     } on TimeoutException catch (_) {
       emit(const NetworkError(
-          "The request timed out. Please check your connection and try again."));
+          "Request timed out"));
     } on SocketException catch (_) {
       emit(const NetworkError(
-          "Network error: Could not connect to the server. Please check your internet connection."));
+          "Network connection issue"));
     } on http.ClientException catch (e) {
+      // Log the actual error for debugging
+      print('HTTP Client Exception: ${e.message}');
+
       if (e.message.toLowerCase().contains('auth')) {
-        emit(AuthError("Authentication failed: ${e.message}. Please ensure you are authorized."));
+        emit(const AuthError("Authentication failed"));
       } else {
-        emit(NetworkError(
-            "Network client error: ${e.message}. Please check your connection or configuration."));
+        emit(const NetworkError("Connection problem"));
       }
     } catch (e) {
-      emit(ServerSideError(
-          "An unexpected error occurred: ${e.toString()}"));
+      // Log the actual error for debugging
+      print('Unexpected Error: ${e.toString()}');
+      emit(const ServerSideError(
+          "An unexpected error occurred"));
     }
   }
 }
