@@ -72,7 +72,6 @@ Here is a step-by-step walkthrough of the primary user journey in the app.
 ## 4. Future Improvements ✨
 
 If more time were allocated to this project, here are some areas I would focus on improving:
-
 * **Caching Strategy**:
     * **What**: Implement caching for VIN search results.
     * **Why**: To reduce redundant network requests if a user searches for the same VIN multiple times. This would improve performance and reduce data usage.
@@ -92,7 +91,22 @@ If more time were allocated to this project, here are some areas I would focus o
         * Conduct user testing to identify and address any usability pain points in the app flow.
         * Refine the layout on the `SearchScreen` and `ProfileScreen` for better readability and aesthetics.
 
-* **Refined Error Handling**:
-    * **What**: Provide even more specific and helpful error messages.
-    * **Why**: To help users resolve issues on their own without needing to contact support.
-    * **How**: Instead of a generic "Network Error", detect the specific cause (e.g., no internet connection vs. DNS failure) and provide tailored guidance. For server errors, use the `msgKey` from `ServerErrorDetails` to show translated, user-friendly messages.
+* **Migration to go_router**:
+    * **What**: Replace manual navigation with go_router.
+    * **Why**: go_router offers better type safety, declarative navigation, and support for code generation.
+    * **How**: Refactor route handling using GoRoute, GoRouter, and URL-based deep linking, moving navigation logic out of UI widgets for improved modularity.
+
+* **Improved Dependency Management**:
+    * **What**: Use a Flutter-first DI solution instead of relying on generic approaches.
+    * **Why**: To simplify testing, improve readability, and align better with Flutter architecture patterns.
+    * **How**: Adopt a more Flutter-native tool like get_it, riverpod, or flutter_modular, ensuring clear separation of concerns and ease of integration.
+
+* **Write More Tests**:
+    * **What**: Increase coverage for UI, bloc, and repository logic.
+    * **Why**: To catch regressions early and build confidence in future refactors.
+    * **How**: Add widget tests for major screens, bloc tests using bloc_test, and repository tests with mocked data sources.
+
+* **Decouple Classes**:
+    * **What**: Separate tightly coupled components.
+    * **Why**: To improve testability, maintainability, and reusability.
+    * **How**: Extract responsibilities into smaller units, use interfaces and dependency injection, and follow SOLID principles.
